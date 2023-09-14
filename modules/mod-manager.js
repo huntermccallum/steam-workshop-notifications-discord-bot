@@ -1,7 +1,5 @@
 import EventEmitter from 'events'
 import moment from 'moment'
-import * as cache from './cache-manager.js'
-import * as util from './util.js'
 import { logger } from './logger.js'
 
 const modManager = new EventEmitter()
@@ -10,7 +8,6 @@ let notificationDatabase = new Map()
 let modQueue = []
 
 const deleteGuild = guildId => {
-    // Remove guild references from mod database and delete mod if no guilds reference it
     for (const [modUrl, mod] of modDatabase.entries()) {
         if (mod.guilds.has(guildId)) mod.guilds.delete(guildId)
         if (mod.guilds.size === 0) modDatabase.delete(modUrl)
@@ -111,17 +108,30 @@ modManager.on('checkMod', (client) => {
         return
     }
     if (modQueue.length === 0) for (const modUrl of modDatabase.keys()) modQueue.push(modUrl)
+    
     let modUrl = modQueue.shift()
     let mod = modDatabase.get(modUrl)
+    
     if (!mod) {
         logger.error(`Cannot find mod ${modUrl}.`)
         return
     }
+
     logger.info(`Checking mod '${mod.name}' (${modUrl}).`)
 
+    // The parsing part where we need to ensure correct date format
     util.refreshMod(modUrl)
-        .then((htmlLastModified) => {
-            const cachedLastModified = moment(mod.lastModified)
+        .then(htmlLastModified => {
+            let rawLastModified = htmlLastModified.trim()
+
+            // Ensure the format is correct
+            let splitRawLastModified = rawLastModified.split(' ')
+            if (splitRawLastModified.length === 4) {
+                rawLastModified = `${splitRawLastModified[0]}-${splitRawLastModified[1]}-${moment().year()} ${splitRawLastModified[2]} ${splitRawLastModified[3]}`
+            }
+
+            const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma')
+            const now = moment()
 
             logger.debug(`Mod '${mod.name}', cached last updated: '${cachedLastModified}', html last updated: '${htmlLastModified}'.`)
             if (cachedLastModified.isSame(moment.unix(0).format())) {
@@ -181,7 +191,7 @@ modManager.on('checkMod', (client) => {
             mod.lastChecked = moment().format()
             modManager.emit('saveModsToCache')
         })
-        .catch((e) => logger.error(e))
+        .catch(logger.error)
 })
 
 export { modManager }
