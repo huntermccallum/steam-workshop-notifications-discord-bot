@@ -5,45 +5,26 @@ import { convert } from 'html-to-text'
 import fs from 'fs'
 import { logger } from './logger.js'
 
-const downloadFile = function (url) {
+const downloadFile = url => {
     return new Promise((resolve, reject) => {
         url = url.replace('http://', 'https://')
         let data = []
-        https
-            .get(url, (response) => {
-                response.on('data', (chunk) => {
-                    data.push(chunk)
-                })
-                response.on('end', () => {
-                    resolve(Buffer.concat(data).toString())
-                })
-            })
-            .on('error', function (e) {
-                // Handle errors
-                reject(e)
-            })
+
+        https.get(url, response => {
+            response.on('data', chunk => data.push(chunk))
+            response.on('end', () => resolve(Buffer.concat(data).toString()))
+        }).on('error', reject)
     })
 }
 
-const parseModsHtml = function (html) {
-    return new Promise((resolve) => {
-        const root = parse(html)
-        const modData = root
-            .querySelectorAll('tr[data-type="ModContainer"]')
-            .map((x) => {
-                let mods = {}
-                mods[x.querySelector('[data-type="Link"]').rawText] = {
-                    name: x.querySelector('[data-type="DisplayName"]').rawText,
-                }
+const parseModsHtml = async html => {
+    const root = parse(html)
+    const modData = root
+        .querySelectorAll('tr[data-type="ModContainer"]')
+        .map(x => ({ [x.querySelector('[data-type="Link"]').rawText]: { name: x.querySelector('[data-type="DisplayName"]').rawText } }))
+        .reduce((prev, curr) => ({ ...prev, ...curr }), {})
 
-                return mods
-            })
-            .reduce((previousValue, currentValue) => {
-                return Object.assign(previousValue, currentValue)
-            })
-
-        resolve(modData)
-    })
+    return modData
 }
 
 const parseSteamWorkshopHtml = function (html) {
@@ -124,60 +105,47 @@ const parseArmaSpotRepPostHtml = function (html) {
     })
 }
 
-const readFile = function (filename) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filename, 'utf8', (e, data) => {
-            if (e) reject(e)
-            else resolve(data)
-        })
-    })
-}
+const readFile = filename => 
+    new Promise((resolve, reject) => 
+        fs.readFile(filename, 'utf8', (err, data) => err ? reject(err) : resolve(data))
+    )
 
-const writeFile = function (filename, content) {
-    return new Promise((resolve, reject) => {
-        fs.writeFile(filename, content, 'utf8', (e) => {
-            if (e) reject(e)
-            else resolve(content)
-        })
-    })
-}
+const writeFile = (filename, content) => 
+    new Promise((resolve, reject) => 
+        fs.writeFile(filename, content, 'utf8', err => err ? reject(err) : resolve(content))
+    )
 
-const fileExists = function (filename) {
-    return new Promise((resolve) => {
-        fs.access(filename, fs.constants.F_OK, (err) => {
-            if (err) {
-                resolve(false)
-            }
+const fileExists = filename => 
+    new Promise(resolve => 
+        fs.access(filename, fs.constants.F_OK, err => resolve(!err))
+    )
 
-            resolve(true)
-        })
-    })
-}
+const splitString = (string, size, pattern = '\r\n') => {
+    const splitStrings = []
 
-const splitString = function (string, size, pattern = '\r\n') {
-    let splitStrings = []
     while (string.length > size) {
-        let lastNewLineIndex = string.slice(0, size).lastIndexOf(pattern) // TODO what if this pattern is not found
+        let lastNewLineIndex = string.slice(0, size).lastIndexOf(pattern)
         if (lastNewLineIndex === -1) lastNewLineIndex = size - 1
 
-        const splitString = string.slice(0, lastNewLineIndex)
-        splitStrings.push(splitString)
-        string = string.slice(lastNewLineIndex, string.length)
+        splitStrings.push(string.slice(0, lastNewLineIndex))
+        string = string.slice(lastNewLineIndex)
     }
-    splitStrings.push(string)
 
+    splitStrings.push(string)
     return splitStrings
 }
 
-const buildNotificationString = async function (notifications, guildId, client) {
-    let notificationsString = 'No members or roles to notify.'
-    if (notifications) {
-        let members = await Promise.all(notifications.memberIds.map((id) => client.guilds.fetch(guildId).then((guild) => guild.members.fetch(id))))
-        let roles = await Promise.all(notifications.roleIds.map((id) => client.guilds.fetch(guildId).then((guild) => guild.roles.fetch(id))))
-        if (roles.length > 0 || members.length > 0) notificationsString = `Notifying ${members.map((x) => x.toString()).join(' ')} ${roles.map((x) => x.toString()).join(' ')}`
-    }
+const buildNotificationString = async (notifications, guildId, client) => {
+    if (!notifications) return 'No members or roles to notify.'
 
-    return notificationsString
+    const guild = await client.guilds.fetch(guildId)
+    const members = await Promise.all(notifications.memberIds.map(id => guild.members.fetch(id)))
+    const roles = await Promise.all(notifications.roleIds.map(id => guild.roles.fetch(id)))
+
+    const membersString = members.map(member => member.toString()).join(' ')
+    const rolesString = roles.map(role => role.toString()).join(' ')
+
+    return membersString || rolesString ? `Notifying ${membersString} ${rolesString}` : 'No members or roles to notify.'
 }
 
 export {
