@@ -41,7 +41,7 @@ The following script will install the application on any Linux system. Please fo
 ### Inviting the Bot:
 - Click on 'OAuth2' in the sidebar and then on 'General'.
 - Click on the 'Copy' button to copy the client ID, save it.
-- Open the following URL to invite the bot, insert your client ID: https://discord.com/oauth2/authorize?client_id=<YOUR CLIENT ID>&permissions=35840&scope=bot
+- Open the following URL to invite the bot, insert your client ID: ```https://discord.com/oauth2/authorize?client_id=<YOUR CLIENT ID>&permissions=35840&scope=bot```
 - The bot should now appear on your Discord server, showing as offline.
 
 ### Run the Install Script:
