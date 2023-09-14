@@ -1,15 +1,21 @@
 {
   "name": "steam-workshop-notifications-discord-bot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A versatile Discord bot for Steam Workshop notifications, spot reports, and more, built with Node.js and the discord.js library.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node .",
+    "start": "pm2 start index.js --name steam-bot --cwd /bot",
     "lint": "eslint ."
   },
-  "keywords": ["discord", "bot", "steam workshop", "notifications", "ARMA 3"],
+  "keywords": [
+    "discord",
+    "bot",
+    "steam workshop",
+    "notifications",
+    "ARMA 3"
+  ],
   "author": "Hunter McCallum",
   "license": "GPL-3.0",
   "devDependencies": {
@@ -21,6 +27,7 @@
     "moment": "^2.29.4",
     "node-html-parser": "^6.1.9",
     "node-schedule": "^2.1.0",
+    "pm2": "^5.3.0",
     "winston": "^3.10.0",
     "winston-daily-rotate-file": "^4.7.1"
   }
