@@ -1,11 +1,18 @@
 import { Client, Intents } from 'discord.js'
-import config from './config/config.json' assert { type: 'json' }
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
 import schedule from 'node-schedule'
 import * as util from './modules/util.js'
 import * as cache from './modules/cache-manager.js'
 import { modManager } from './modules/mod-manager.js'
 import { spotRepManager } from './modules/spotrep-manager.js'
 import { logger } from './modules/logger.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const configPath = path.join(__dirname, './config/config.json');
+const configRaw = fs.readFileSync(configPath, 'utf-8');
+const config = JSON.parse(configRaw);
 
 const id = function (message) {
     logger.debug(`Received 'id' command from user '${message.author.username}'.`)
@@ -255,7 +262,7 @@ schedule.scheduleJob('0 * * * * *', function () {
     spotRepManager.emit('checkSpotRep', client)
 })
 
-// Check Steam Workshop items every 10 seconds
-schedule.scheduleJob('*/5 * * * * *', function () {
+// Check Steam Workshop items every 3 seconds
+schedule.scheduleJob('*/3 * * * * *', function () {
     modManager.emit('checkMod', client)
 })
