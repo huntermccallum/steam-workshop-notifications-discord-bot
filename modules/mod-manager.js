@@ -7,107 +7,81 @@ import { logger } from './logger.js'
 const modManager = new EventEmitter()
 let modDatabase = new Map()
 let notificationDatabase = new Map()
-
 let modQueue = []
 
-const deleteAll = function (guildId) {
-    // Delete old guildId -> notifications link
-    notificationDatabase.delete(guildId)
-
-    deleteGuild(guildId)
-}
-
-const deleteGuild = function (guildId) {
-    // Delete old guildId references from mod database
+const deleteGuild = guildId => {
     for (const [modUrl, mod] of modDatabase.entries()) {
         if (mod.guilds.has(guildId)) mod.guilds.delete(guildId)
-
-        // If a mod has no guildId references, delete the mod
         if (mod.guilds.size === 0) modDatabase.delete(modUrl)
     }
 }
 
+const deleteAll = guildId => {
+    notificationDatabase.delete(guildId)
+    deleteGuild(guildId)
+}
+
 modManager.on('listMods', (guildId, callback) => {
-    let mods = []
-
-    for (const [, mod] of modDatabase.entries()) {
-        if (mod.guilds.has(guildId)) {
-            mods.push(mod)
-        }
-    }
-
+    const mods = [...modDatabase.values()].filter(mod => mod.guilds.has(guildId))
     callback(mods)
 })
 
-modManager.on('listNotifications', (callback) => {
+modManager.on('listNotifications', callback => {
     callback(notificationDatabase)
 })
 
 modManager.on('listNotificationsForGuildId', (guildId, callback) => {
-    let notifications = notificationDatabase.get(guildId)
-
-    callback(notifications)
+    callback(notificationDatabase.get(guildId))
 })
 
 modManager.on('listChannelsForGuildId', (guildId, callback) => {
-    let channels = notificationDatabase.get(guildId).channels
-
-    callback(channels)
+    const notifications = notificationDatabase.get(guildId)
+    callback(notifications?.channels)
 })
 
 modManager.on('deleteAll', (guildId, callback) => {
     deleteAll(guildId)
     modManager.emit('saveModsToCache')
     modManager.emit('saveNotificationsToCache')
-
     callback()
 })
 
 modManager.on('monitorMods', (newMods, guildId) => {
-    deleteGuild(guildId) // Clear existing mods being monitored on this server
-
+    deleteGuild(guildId) 
     for (const newMod in newMods) {
         if (modDatabase.has(newMod)) {
-            newMods[newMod]['guilds'].forEach(modDatabase.get(newMod)['guilds'].add, modDatabase.get(newMod)['guilds']) // TODO does this block?
+            newMods[newMod]['guilds'].forEach(modDatabase.get(newMod)['guilds'].add, modDatabase.get(newMod)['guilds'])
         } else {
             newMods[newMod]['guilds'] = new Set(newMods[newMod]['guilds'])
             newMods[newMod]['lastChecked'] = moment.unix(0).format()
             newMods[newMod]['lastModified'] = moment.unix(0).format()
-
             modDatabase.set(newMod, newMods[newMod])
         }
     }
-
     modManager.emit('saveModsToCache')
 })
 
 modManager.on('setNotifications', (guildId, notifications, callback) => {
     notificationDatabase.set(guildId, notifications)
-
     modManager.emit('saveNotificationsToCache')
-
     callback()
 })
 
 modManager.on('loadModsFromCache', (cachedMods) => {
     logger.info('Loading mods from cache.')
-
     for (const cachedMod in cachedMods) {
         cachedMods[cachedMod]['guilds'] = new Set(cachedMods[cachedMod]['guilds'])
     }
     modDatabase = new Map(Object.entries(cachedMods))
-
     logger.info(`${modDatabase.size} mods loaded from cache.`)
 })
 
 modManager.on('saveModsToCache', async () => {
     logger.debug('Saving mods to cache.')
-
     let tmpMap = structuredClone(modDatabase)
     for (const [, value] of tmpMap.entries()) {
         value['guilds'] = [...value['guilds']]
     }
-
     try {
         await cache.writeModsToCache(Object.fromEntries(tmpMap))
     } catch (e) {
@@ -117,15 +91,12 @@ modManager.on('saveModsToCache', async () => {
 
 modManager.on('loadNotificationsFromCache', (cachedNotifications) => {
     logger.info('Loading notifications from cache.')
-
     notificationDatabase = new Map(Object.entries(cachedNotifications))
-
     logger.info(`${notificationDatabase.size} notifications loaded from cache.`)
 })
 
 modManager.on('saveNotificationsToCache', async () => {
     logger.info('Saving notifications to cache.')
-
     try {
         await cache.writeNotificationsToCache(Object.fromEntries(notificationDatabase))
     } catch (e) {
@@ -134,26 +105,36 @@ modManager.on('saveNotificationsToCache', async () => {
 })
 
 modManager.on('checkMod', (client) => {
-    // If no mods are in the database, don't do anything
     if (modDatabase.size === 0) {
         logger.warn('No mods to check.')
         return
     }
-
-    // If the queue is empty, reload it
     if (modQueue.length === 0) for (const modUrl of modDatabase.keys()) modQueue.push(modUrl)
-
+    
     let modUrl = modQueue.shift()
     let mod = modDatabase.get(modUrl)
+    
     if (!mod) {
         logger.error(`Cannot find mod ${modUrl}.`)
         return
     }
+
     logger.info(`Checking mod '${mod.name}' (${modUrl}).`)
 
+    // The parsing part where we need to ensure correct date format
     util.refreshMod(modUrl)
-        .then((htmlLastModified) => {
-            const cachedLastModified = moment(mod.lastModified)
+        .then(htmlLastModified => {
+            let rawLastModified = String(htmlLastModified).trim();
+
+            // Ensure the format is correct
+            let splitRawLastModified = rawLastModified.split(' ');
+            if (splitRawLastModified.length === 4) {
+                rawLastModified = `${splitRawLastModified[0]}-${splitRawLastModified[1]}-${moment().year()} ${splitRawLastModified[2]} ${splitRawLastModified[3]}`;
+            }
+
+            const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma');
+            const cachedLastModified = moment(mod.lastModified);
+            const now = moment();
 
             logger.debug(`Mod '${mod.name}', cached last updated: '${cachedLastModified}', html last updated: '${htmlLastModified}'.`)
             if (cachedLastModified.isSame(moment.unix(0).format())) {
@@ -213,7 +194,7 @@ modManager.on('checkMod', (client) => {
             mod.lastChecked = moment().format()
             modManager.emit('saveModsToCache')
         })
-        .catch((e) => logger.error(e))
+        .catch(logger.error)
 })
 
 export { modManager }
