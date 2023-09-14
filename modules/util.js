@@ -29,36 +29,48 @@ const parseModsHtml = async html => {
 
 const parseSteamWorkshopHtml = function (html) {
     return new Promise((resolve) => {
-        const root = parse(html)
+        const root = parse(html);
 
-        let rawLastModified
+        let rawLastModified;
         try {
-            // The date/time that is returned here will not match local date time due to JavaScript not being executed
-            rawLastModified = root.querySelector('.detailsStatsContainerRight').querySelector('.detailsStatRight:last-child').rawText
+            rawLastModified = root.querySelector('.detailsStatsContainerRight').querySelector('.detailsStatRight:last-child').rawText;
         } catch (e) {
-            logger.error('Last modified date not found, mod set to private?') // TODO Propagate this error and handle it correctly
-            throw e
+            logger.error('Last modified date not found, mod set to private?');
+            throw e;
         }
+	logger.debug(`Extracted raw date from HTML: ${rawLastModified}`);
 
-        // Mods released in current year do not have the year in timestamp
-        let splitRawLastModified = rawLastModified.split(' ')
+        let splitRawLastModified = rawLastModified.split(' ');
         if (splitRawLastModified.length === 4) {
-            splitRawLastModified.splice(2, 0, moment().year().toString())
-            rawLastModified = splitRawLastModified.join(' ')
+            splitRawLastModified.splice(2, 0, moment().year().toString());
+            rawLastModified = splitRawLastModified.join(' ');
         }
 
-        const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma')
-        const now = moment()
+        // Split the date parts
+        const [month, day, year, time, meridiem] = rawLastModified.split(/[\s@]+/);
+
+        // Create a new Date object
+	const formattedDateStr = `${month} ${day} ${year} ${time} ${meridiem}`;
+	const lastModified = moment(formattedDateStr, "MMM D YYYY h:mma");
+	// logger.debug(`Moment object from formatted string: ${lastModified.toString()}`);
+
+        // Debugging: Log the value of the date
+        // logger.debug(`Constructed Date object: ${formattedDateStr.toString()}`);
+
+        // Convert the date into a moment object
+	// logger.debug(`Moment object from constructed Date: ${lastModified.toString()}`);
+
+        const now = moment();
 
         if (lastModified > now) {
             // If date is in the future, subtract one year
-            logger.warn('Last modified is in the future, subtracting one year')
-            resolve(lastModified.subtract(1, 'year'))
+            logger.warn('Last modified is in the future, subtracting one year');
+            resolve(lastModified.subtract(1, 'year'));
         } else {
-            resolve(lastModified)
+            resolve(lastModified);
         }
-    })
-}
+    });
+};
 
 const parseSteamWorkshopChangelogHtml = function (html) {
     return new Promise((resolve) => {
