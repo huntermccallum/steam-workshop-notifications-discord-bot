@@ -1,5 +1,7 @@
 import EventEmitter from 'events'
 import moment from 'moment'
+import * as cache from './cache-manager.js'
+import * as util from './util.js'
 import { logger } from './logger.js'
 
 const modManager = new EventEmitter()
