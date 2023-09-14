@@ -38,7 +38,7 @@ const parseSteamWorkshopHtml = function (html) {
             logger.error('Last modified date not found, mod set to private?');
             throw e;
         }
-	logger.debug(`Extracted raw date from HTML: ${rawLastModified}`);
+	// logger.debug(`Extracted raw date from HTML: ${rawLastModified}`);
 
         let splitRawLastModified = rawLastModified.split(' ');
         if (splitRawLastModified.length === 4) {
