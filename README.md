@@ -1,26 +1,35 @@
-[h1]Steam Workshop Notifications Discord Bot (SWNDB)[/h1]
-[hr][/hr]
+# Steam Workshop Notifications Discord Bot (SWNDB)
+
 A Discord bot which monitors the Steam Workshop and notifies users on Discord when a workshop item has updated. Currently, only supports ArmA 3.
 
-Features
-Steam Workshop update notifications (ArmA 3 only), including the changelog
-ArmA 3 SPOTREP notifications, including the changelog
-Supports multiple Discord servers, monitors one set of workshop items per server
-Notifications on multiple channels, optionally notifying multiple users
-Commands
+## Features
+- Steam Workshop update notifications (ArmA 3 only), including the changelog
+- ArmA 3 SPOTREP notifications, including the changelog
+- Supports multiple Discord servers, monitors one set of workshop items per server
+- Notifications on multiple channels, optionally notifying multiple users
+## Commands
 All commands must be prefixed with the bots name using Discord's mentions.
 
-@<BOTNAME> id returns the Discord ID of the user. Private message allowed.
-@<BOTNAME> info general info about how many mods are monitored, and who is notified where.
-@<BOTNAME> logs outputs the log files. Private message allowed.
-@<BOTNAME> monitor expects an ArmA3 modset HTML to be attached, determines the mods that should be monitored.
-@<BOTNAME> notify #<channel1> #<channel2> ... [@<user1> @<user2> ...] [#<role1> #<role2> ...] sets the users to be notified and the channels on which the bot outputs, multiple users and multiple channels allowed. Users and roles are optional. The order of channels, users and roles should not matter.
-@<BOTNAME> disable disables the bot completely.
-@<BOTNAME> version returns the version of the bot. Private message allowed.
-Installation
-Only Docker deployment is supported.
 
-Requirements:
+```@<BOTNAME> id``` returns the Discord ID of the user. Private message allowed.
+
+```@<BOTNAME> info```general info about how many mods are monitored, and who is notified where.
+
+```@<BOTNAME> logs``` outputs the log files. Private message allowed.
+
+```@<BOTNAME> monitor``` expects an ArmA3 modset HTML to be attached, determines the mods that should be monitored.
+
+```@<BOTNAME> notify #<channel1> #<channel2> ... [@<user1> @<user2> ...] [#<role1> #<role2> ...] ``` sets the users to be notified and the channels on which the bot outputs, multiple users and multiple channels allowed. Users and roles are optional. The order of channels, users and roles should not matter.
+
+```@<BOTNAME>``` disable disables the bot completely.
+
+```@<BOTNAME> version``` returns the version of the bot. Private message allowed.
+
+
+## Installation
+This is able to be deployed on any system where NPM is able to be installed.
+
+## Requirements:
 Linux VM (Previously Required Docker, but this has been extracted from there)
 
 Obtain Discord Token
