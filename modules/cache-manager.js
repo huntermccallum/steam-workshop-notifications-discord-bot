@@ -1,48 +1,52 @@
 import * as util from './util.js'
-import moment from 'moment'
 
-const notificationsCacheFile = './data/notifications_cache.json'
-const modsCacheFile = './data/mods_cache.json'
-const spotRepCacheFile = './data/spotrep_cache.json'
+const notificationsCacheFile = './data/notifications_cache.json';
+const modsCacheFile = './data/mods_cache.json';
+const spotRepCacheFile = './data/spotrep_cache.json';
 
-export const createModsCache = function () {
-    return util.fileExists(modsCacheFile).then((exists) => {
-        return !exists ? util.writeFile(modsCacheFile, '{}') : Promise.resolve(exists)
-    })
+async function createCacheIfNotExists(filePath, initialData = '{}') {
+    try {
+        const exists = await util.fileExists(filePath);
+        if (!exists) {
+            await util.writeFile(filePath, initialData);
+        }
+        return exists;
+    } catch (error) {
+        console.error(`Error creating cache for ${filePath}:`, error);
+        throw error;
+    }
 }
 
-export const writeModsToCache = function (mods) {
-    return util.writeFile(modsCacheFile, JSON.stringify(mods))
+async function writeToCache(filePath, data) {
+    try {
+        await util.writeFile(filePath, JSON.stringify(data));
+    } catch (error) {
+        console.error(`Error writing to cache ${filePath}:`, error);
+        throw error;
+    }
 }
 
-export const readModsFromCache = function () {
-    return util.readFile(modsCacheFile).then(JSON.parse)
+async function readFromCache(filePath) {
+    try {
+        const data = await util.readFile(filePath);
+        return JSON.parse(data);
+    } catch (error) {
+        console.error(`Error reading from cache ${filePath}:`, error);
+        throw error;
+    }
 }
 
-export const createNotificationsCache = function () {
-    return util.fileExists(notificationsCacheFile).then((exists) => {
-        return !exists ? util.writeFile(notificationsCacheFile, '{}') : Promise.resolve(exists)
-    })
-}
+export const createModsCache = () => createCacheIfNotExists(modsCacheFile);
+export const writeModsToCache = (mods) => writeToCache(modsCacheFile, mods);
+export const readModsFromCache = () => readFromCache(modsCacheFile);
 
-export const writeNotificationsToCache = function (notifications) {
-    return util.writeFile(notificationsCacheFile, JSON.stringify(notifications))
-}
+export const createNotificationsCache = () => createCacheIfNotExists(notificationsCacheFile);
+export const writeNotificationsToCache = (notifications) => writeToCache(notificationsCacheFile, notifications);
+export const readNotificationsFromCache = () => readFromCache(notificationsCacheFile);
 
-export const readNotificationsFromCache = function () {
-    return util.readFile(notificationsCacheFile).then(JSON.parse)
+export const createSpotRepCache = () => {
+    const initialData = `{ "lastUpdate": "${new Date().toISOString()}" }`;
+    return createCacheIfNotExists(spotRepCacheFile, initialData);
 }
-
-export const createSpotRepCache = function () {
-    return util.fileExists(spotRepCacheFile).then((exists) => {
-        return !exists ? util.writeFile(spotRepCacheFile, `{ "lastUpdate": "${moment().format()}"}`) : Promise.resolve(exists)
-    })
-}
-
-export const writeSpotRepToCache = function (spotRep) {
-    return util.writeFile(spotRepCacheFile, JSON.stringify(spotRep))
-}
-
-export const readSpotRepFromCache = function () {
-    return util.readFile(spotRepCacheFile).then(JSON.parse)
-}
+export const writeSpotRepToCache = (spotRep) => writeToCache(spotRepCacheFile, spotRep);
+export const readSpotRepFromCache = () => readFromCache(spotRepCacheFile);
