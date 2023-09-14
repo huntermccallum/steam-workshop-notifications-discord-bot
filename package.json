@@ -1,0 +1,30 @@
+{
+  "name": "steam-workshop-notifications-discord-bot",
+  "version": "1.0.2",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node .",
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.18.2",
+    "@babel/eslint-plugin": "^7.17.7",
+    "@babel/plugin-syntax-import-assertions": "^7.17.12",
+    "eslint": "^8.18.0",
+    "prettier": "2.7.1"
+  },
+  "dependencies": {
+    "discord.js": "^13.8.0",
+    "html-to-text": "^8.2.0",
+    "moment": "^2.29.3",
+    "node-html-parser": "^5.2.0",
+    "node-schedule": "^2.1.0",
+    "winston": "^3.7.2"
+  }
+}
