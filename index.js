@@ -1,4 +1,4 @@
-import { Client, Intents } from 'discord.js'
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
@@ -158,9 +158,9 @@ const validCommands = 'Valid commands: id (DM allowed), info, logs (DM allowed),
 
 // Create a new client instance
 const client = new Client({
-    intents: [Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-    partials: ['CHANNEL'],
-})
+    intents: [GatewayIntentBits.DirectMessages, GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+    partials: [Partials.Channel],
+});
 
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
@@ -262,7 +262,7 @@ schedule.scheduleJob('0 * * * * *', function () {
     spotRepManager.emit('checkSpotRep', client)
 })
 
-// Check Steam Workshop items every 3 seconds
+// Check Steam Workshop items every 10 seconds
 schedule.scheduleJob('*/3 * * * * *', function () {
     modManager.emit('checkMod', client)
 })
