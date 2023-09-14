@@ -21,7 +21,7 @@ All commands must be prefixed with the bots name using Discord's mentions.
 
 ```@<BOTNAME> notify #<channel1> #<channel2> ... [@<user1> @<user2> ...] [#<role1> #<role2> ...] ``` sets the users to be notified and the channels on which the bot outputs, multiple users and multiple channels allowed. Users and roles are optional. The order of channels, users and roles should not matter.
 
-```@<BOTNAME>``` disable disables the bot completely.
+```@<BOTNAME> disable``` disables the bot completely.
 
 ```@<BOTNAME> version``` returns the version of the bot. Private message allowed.
 
