@@ -133,6 +133,7 @@ modManager.on('checkMod', (client) => {
             }
 
             const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma');
+            const cachedLastModified = moment(mod.lastModified);
             const now = moment();
 
             logger.debug(`Mod '${mod.name}', cached last updated: '${cachedLastModified}', html last updated: '${htmlLastModified}'.`)
