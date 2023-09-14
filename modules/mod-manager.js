@@ -122,16 +122,16 @@ modManager.on('checkMod', (client) => {
     // The parsing part where we need to ensure correct date format
     util.refreshMod(modUrl)
         .then(htmlLastModified => {
-            let rawLastModified = htmlLastModified.trim()
+            let rawLastModified = String(htmlLastModified).trim();
 
             // Ensure the format is correct
-            let splitRawLastModified = rawLastModified.split(' ')
+            let splitRawLastModified = rawLastModified.split(' ');
             if (splitRawLastModified.length === 4) {
-                rawLastModified = `${splitRawLastModified[0]}-${splitRawLastModified[1]}-${moment().year()} ${splitRawLastModified[2]} ${splitRawLastModified[3]}`
+                rawLastModified = `${splitRawLastModified[0]}-${splitRawLastModified[1]}-${moment().year()} ${splitRawLastModified[2]} ${splitRawLastModified[3]}`;
             }
 
-            const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma')
-            const now = moment()
+            const lastModified = moment(rawLastModified, 'D-MMM-YYYY hh:mma');
+            const now = moment();
 
             logger.debug(`Mod '${mod.name}', cached last updated: '${cachedLastModified}', html last updated: '${htmlLastModified}'.`)
             if (cachedLastModified.isSame(moment.unix(0).format())) {
